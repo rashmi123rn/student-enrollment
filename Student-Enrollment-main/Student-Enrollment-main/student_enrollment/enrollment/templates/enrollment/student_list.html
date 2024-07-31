@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Enrollment</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Student Enrollment</h1>
+    <form id="studentForm">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Add Student</button>
+    </form>
+
+    <h2>Students</h2>
+    <ul id="studentList">
+        {% for student in students %}
+            <li>{{ student.first_name }} {{ student.last_name }} - {{ student.email }}</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'export_students_csv' %}">Export to CSV</a>
+    <a href="{% url 'export_students_pdf' %}">Export to PDF</a>
+
+    <script>
+        $(document).ready(function() {
+            $('#studentForm').on('submit', function(event) {
+                event.preventDefault();
+                
+                var formData = $(this).serialize();
+                var csrfToken = $('[name="csrfmiddlewaretoken"]').val();
+
+                $.ajax({
+                    url: "{% url 'add_student' %}",
+                    type: "POST",
+                    data: formData,
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Student saved successfully!');
+                            // You can also append the new student to the list without reloading the page
+                            location.reload();
+                        } else {
+                            alert('Error saving student');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('An error occurred: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
